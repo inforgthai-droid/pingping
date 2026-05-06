@@ -207,7 +207,7 @@ body{background:#fffbea!important;}
 .loading-logo{color:var(--brand)!important;}
 .loading-fill{background:var(--brand)!important;}
 .bdg,.freqBdg{background:#ff6b00!important;}
-.paw .avo,.avo{background:rgba(245,200,0,.5)!important;}
+.paw .avo{background:rgba(0,0,0,.4)!important;}
 </style>
 </head>
 <body>
@@ -498,13 +498,14 @@ function setAvs(name,uid,photo){const i=ini(name),c=col(uid);['navAv','pmAv','si
 // VIEWS
 function hide(...ids){ids.forEach(id=>{ const el=document.getElementById(id); if(el)el.style.display='none'; });}
 function show(id,disp='block'){const el=document.getElementById(id);if(el)el.style.display=disp;}
-window.showFeed=function(){hide('profilePage','freqPage');show('feedView');history.pushState({page:'feed'},'','#feed');}
-window.showFreq=function(){hide('feedView','profilePage');show('freqPage');loadFreqPage();history.pushState({page:'freq'},'','#friends');}
+window.showFeed=function(){sessionStorage.setItem('pp_page','feed');hide('profilePage','freqPage');show('feedView');history.pushState({page:'feed'},'','#feed');}
+window.showFreq=function(){sessionStorage.setItem('pp_page','freq');hide('feedView','profilePage');show('freqPage');loadFreqPage();history.pushState({page:'freq'},'','#friends');}
 window.setTab=function(t){document.querySelectorAll('.ntab').forEach(x=>x.classList.remove('active'));t.classList.add('active');}
 
 // PROFILE PAGE
 window.goProfile=async function(uid){
   if(!uid)return;
+  sessionStorage.setItem('pp_page','profile:'+uid);
   hide('feedView','freqPage');
   show('profilePage');
   document.getElementById('pmenu').classList.remove('open');
@@ -526,7 +527,7 @@ window.goProfile=async function(uid){
   ab.style.background=col(uid);
   if(ud.photoURL){ai.src=ud.photoURL;ai.style.display='block';at.style.display='none';}
   else{ai.style.display='none';at.style.display='block';at.textContent=ini(ud.name);}
-  ao.style.display=window.isOwn?'flex':'none';
+  ao.style.display='none';
 
   document.getElementById('proName').textContent=ud.name;
   document.getElementById('proBio').textContent=ud.bio||'ยังไม่มีประวัติ';
@@ -771,12 +772,12 @@ onAuthStateChanged(auth,async user=>{
   if(pba){if(ud.photoURL){pba.src=ud.photoURL;pba.style.background='transparent';}else{pba.src='';pba.style.background=col(user.uid);pba.textContent=ini(ud.name);}}
     hide('authScreen');show('appScreen');
     loadSideFreq();loadFriendList();updBadge();
-    // Check URL hash to restore correct page after refresh
-    const hash=window.location.hash;
-    if(hash.startsWith('#profile/')){
-      const uid=hash.replace('#profile/','');
+    // Restore page after refresh
+    const saved=sessionStorage.getItem('pp_page')||'';
+    if(saved.startsWith('profile:')){
+      const uid=saved.replace('profile:','');
       if(uid){loadPosts();goProfile(uid);return;}
-    }else if(hash==='#friends'){
+    }else if(saved==='freq'){
       loadPosts();showFreq();return;
     }
     showFeed();loadPosts();
