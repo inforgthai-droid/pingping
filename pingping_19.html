@@ -908,6 +908,8 @@ onAuthStateChanged(auth,async user=>{
       goProfile(savedUid);
     }else if(savedPage==='freq'){
       showFreq();
+    }else if(savedPage==='chat'){
+      openChat();
     }else{
       showFeed();
     }
@@ -1038,9 +1040,10 @@ function chatRoomId(uid1, uid2){
 
 // Open chat page
 window.openChat = function(){
+  if(!window.CU){return;}
   const cp=document.getElementById('chatPage');
-  cp.classList.add('open');
   cp.style.display='flex';
+  cp.classList.add('open');
   sessionStorage.setItem('pp_page','chat');
   loadInbox();
 };
@@ -1066,15 +1069,17 @@ window.openChatWith = async function(uid){
 
 // Load inbox
 async function loadInbox(){
+  if(!window.CU){return;}
   const el=document.getElementById('inboxList');
   el.innerHTML='<div style="padding:24px;text-align:center;color:#65676b;">⏳ กำลังโหลด...</div>';
   try{
-    const q=query(collection(db,'chatRooms'),where('members','array-contains',window.CU.uid),orderBy('lastTime','desc'));
+    const q=query(collection(db,'chatRooms'),where('members','array-contains',window.CU.uid));
     if(unsubInbox)unsubInbox();
     unsubInbox=onSnapshot(q,async snap=>{
       if(snap.empty){el.innerHTML='<div style="padding:24px;text-align:center;color:#65676b;">ยังไม่มีข้อความ<br>กด ✏️ เพื่อเริ่มสนทนา</div>';return;}
+      const sorted=[...snap.docs].sort((a,b)=>{const at=a.data().lastTime?.seconds||0,bt=b.data().lastTime?.seconds||0;return bt-at;});
       el.innerHTML='';
-      for(const d of snap.docs){
+      for(const d of sorted){
         const r=d.data();
         const otherUid=r.members.find(m=>m!==window.CU.uid);
         let oName='ผู้ใช้',oPhoto='';
@@ -1088,7 +1093,7 @@ async function loadInbox(){
         item.innerHTML=`${avHtml}<div class="ib-info"><div class="ib-name">${oName}</div><div class="ib-preview${unread?' unread':''}">${r.lastMsg||''}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="ib-time">${timeStr}</div>${unread?'<div class="inbox-unread-dot"></div>':''}</div>`;
         el.appendChild(item);
       }
-    });
+    },e=>{el.innerHTML='<div style="padding:16px;text-align:center;color:#65676b;">โหลดไม่สำเร็จ</div>';});
   }catch(e){el.innerHTML='<div style="padding:16px;text-align:center;color:#65676b;">โหลดไม่สำเร็จ</div>';}
 }
 
