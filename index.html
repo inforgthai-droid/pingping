@@ -838,7 +838,7 @@ async function loadFreqPage(){
       </div>
     </div>`;}).join('');
   }catch(e){}
-}
+};
 
 async function loadFriendList(){
   const el=document.getElementById('friendList');
@@ -1039,7 +1039,7 @@ document.addEventListener('click',function(e){
 
 
 // ===== NOTIFICATION SOUND =====
-function playMsgSound(){
+window.playMsgSound=function playMsgSound(){
   try{
     const ctx=new(window.AudioContext||window.webkitAudioContext)();
     // Create a pleasant "ping" sound
