@@ -788,7 +788,9 @@ window.acceptFri=async function(fromUid){
     await setDoc(doc(db,'users',fromUid,'friends',window.CU.uid),{name:CUD.name,photoURL:CUD.photoURL||'',since:serverTimestamp()});
     await deleteDoc(doc(db,'friendRequests',`${fromUid}_${window.CU.uid}`));
     toast('✅ เพิ่มเพื่อนแล้ว!');
-    loadSideFreq();loadFriendList();updBadge();updateMsgBadge();loadFreqPage();
+    loadSideFreq();loadFriendList();updBadge();updateMsgBadge();
+    // Poll for new messages every 10 seconds
+    setInterval(updateMsgBadge, 10000);loadFreqPage();
     if(curProfUid===fromUid)renderProActs(fromUid);
   }catch(e){toast('เกิดข้อผิดพลาด');}
 };
@@ -1330,14 +1332,21 @@ async function updateMsgBadge(){
       if(r.lastSender&&r.lastSender!==window.CU.uid&&!r['read_'+window.CU.uid])unread++;
     });
     const b=document.getElementById('msgBdg');
-    const prevUnread=parseInt(b?.dataset.prev||'0');
-    if(unread>prevUnread&&prevUnread>=0){
-      // New unread message in inbox - play sound
-      if(document.getElementById('chatPage')?.classList.contains('open')===false){
-        playMsgSound();
+    const prevUnread=parseInt(b?.dataset.prev||'-1');
+    if(prevUnread>=0&&unread>prevUnread){
+      // New unread message - play sound on ANY page
+      playMsgSound();
+      // Show browser notification
+      if(Notification.permission==='granted'){
+        try{
+          new Notification('PingPing 💬 ข้อความใหม่',{
+            body:'คุณมีข้อความใหม่',
+            icon:'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23f5c800%22/%3E%3Ctext y=%22.9em%22 font-size=%2280%22%3E%F0%9F%92%AC%3C/text%3E%3C/svg%3E',
+          });
+        }catch(e){}
       }
     }
-    if(b){b.dataset.prev=unread;if(unread>0){b.textContent=unread;b.style.display='block';}else b.style.display='none';}
+    if(b){b.dataset.prev=String(unread);if(unread>0){b.textContent=unread;b.style.display='block';}else b.style.display='none';}
   }catch(e){}
 }
 
