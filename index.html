@@ -514,7 +514,13 @@ body{background:#fffbea!important;}
     <div class="inbox-panel" id="inboxPanel">
       <div class="inbox-header">
         ข้อความ
-        <button onclick="openNewChat()" style="background:#f0f2f5;border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:20px;">✏️</button>
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button id="notifPermBtn" onclick="askNotifPermission()" title="เปิดการแจ้งเตือน" style="background:#f5c800;border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:18px;display:none;align-items:center;justify-content:center;">🔔</button>
+          <button onclick="openNewChat()" style="background:#f0f2f5;border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:20px;">✏️</button>
+        </div>
+      </div>
+      <div id="notifBanner" style="display:none;background:#fff3b0;border-bottom:1px solid #f5c800;padding:10px 16px;font-size:13px;text-align:center;">
+        🔔 กด <b onclick="askNotifPermission()" style="cursor:pointer;color:#c9a200;text-decoration:underline;">เปิดการแจ้งเตือน</b> เพื่อรับแจ้งเตือนข้อความใหม่
       </div>
       <div class="inbox-search">
         <input placeholder="ค้นหาใน Messenger..." id="inboxSearch" oninput="searchInbox(this.value)"/>
@@ -1029,6 +1035,31 @@ document.addEventListener('click',function(e){
   if(!e.target.closest('#srchInp')&&!e.target.closest('#searchDrop'))document.getElementById('searchDrop').style.display='none';
 });
 
+
+// ===== NOTIFICATION SOUND =====
+function playMsgSound(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    // Create a pleasant "ping" sound
+    const osc1=ctx.createOscillator();
+    const osc2=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc1.connect(gain);
+    osc2.connect(gain);
+    gain.connect(ctx.destination);
+    osc1.frequency.setValueAtTime(880,ctx.currentTime);
+    osc1.frequency.exponentialRampToValueAtTime(1200,ctx.currentTime+0.1);
+    osc2.frequency.setValueAtTime(1100,ctx.currentTime+0.05);
+    osc2.frequency.exponentialRampToValueAtTime(1400,ctx.currentTime+0.15);
+    gain.gain.setValueAtTime(0.3,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01,ctx.currentTime+0.4);
+    osc1.start(ctx.currentTime);
+    osc1.stop(ctx.currentTime+0.2);
+    osc2.start(ctx.currentTime+0.05);
+    osc2.stop(ctx.currentTime+0.25);
+  }catch(e){}
+}
+
 // ===== CHAT / MESSENGER =====
 let currentChatUid = null;
 let currentChatName = '';
@@ -1116,7 +1147,23 @@ window.openChatWindow = async function(uid, name, photo){
   msgsEl.innerHTML='<div style="text-align:center;padding:16px;color:#65676b;">⏳</div>';
   if(unsubChat)unsubChat();
   const mq=query(collection(db,'chatRooms',roomId,'messages'),orderBy('createdAt','asc'),limit(100));
+  let prevMsgCount=0;
   unsubChat=onSnapshot(mq,snap=>{
+    // Play sound if new message from other person
+    if(prevMsgCount>0&&snap.docs.length>prevMsgCount){
+      const lastMsg=snap.docs[snap.docs.length-1].data();
+      if(lastMsg.senderUid!==window.CU?.uid){
+        playMsgSound();
+        // Also show browser notification if supported
+        if(Notification.permission==='granted'){
+          new Notification('PingPing - ข้อความใหม่',{
+            body:lastMsg.text||'📷 รูปภาพ',
+            icon:'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Crect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%23f5c800%22/%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E💬%3C/text%3E%3C/svg%3E',
+          });
+        }
+      }
+    }
+    prevMsgCount=snap.docs.length;
     msgsEl.innerHTML='';
     let lastSender='';
     snap.docs.forEach(d=>{
@@ -1247,6 +1294,32 @@ window.searchInbox = function(v){
 };
 
 // Update msg badge
+// Show notification permission button if not granted
+function checkNotifBtn(){
+  const btn=document.getElementById('notifPermBtn');
+  const banner=document.getElementById('notifBanner');
+  if(Notification.permission==='default'){
+    if(btn){btn.style.display='flex';}
+    if(banner){banner.style.display='block';}
+  }else{
+    if(btn){btn.style.display='none';}
+    if(banner){banner.style.display='none';}
+  }
+}
+
+window.askNotifPermission=async function(){
+  const result=await Notification.requestPermission();
+  if(result==='granted'){
+    toast('✅ เปิดการแจ้งเตือนแล้ว!');
+    playMsgSound();
+    document.getElementById('notifPermBtn').style.display='none';
+    const banner=document.getElementById('notifBanner');
+    if(banner)banner.style.display='none';
+  }else{
+    toast('❌ ไม่ได้รับอนุญาตแจ้งเตือน');
+  }
+};
+
 async function updateMsgBadge(){
   try{
     const q=query(collection(db,'chatRooms'),where('members','array-contains',window.CU.uid));
@@ -1257,7 +1330,14 @@ async function updateMsgBadge(){
       if(r.lastSender&&r.lastSender!==window.CU.uid&&!r['read_'+window.CU.uid])unread++;
     });
     const b=document.getElementById('msgBdg');
-    if(b){if(unread>0){b.textContent=unread;b.style.display='block';}else b.style.display='none';}
+    const prevUnread=parseInt(b?.dataset.prev||'0');
+    if(unread>prevUnread&&prevUnread>=0){
+      // New unread message in inbox - play sound
+      if(document.getElementById('chatPage')?.classList.contains('open')===false){
+        playMsgSound();
+      }
+    }
+    if(b){b.dataset.prev=unread;if(unread>0){b.textContent=unread;b.style.display='block';}else b.style.display='none';}
   }catch(e){}
 }
 
