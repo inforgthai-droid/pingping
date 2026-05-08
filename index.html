@@ -4,46 +4,6 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>PingPing</title>
-<meta name="application-name" content="PingPing"/>
-<meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-<meta name="apple-mobile-web-app-title" content="PingPing"/>
-<meta name="theme-color" content="#f5c800"/>
-<meta name="mobile-web-app-capable" content="yes"/>
-<link rel="manifest" id="pwaManifest"/>
-<link rel="apple-touch-icon" id="appleIcon"/>
-<script>
-// Generate manifest dynamically
-const manifest = {
-  name: "PingPing",
-  short_name: "PingPing",
-  description: "โซเชียลเน็ตเวิร์กสำหรับทุกคน",
-  start_url: "./",
-  display: "standalone",
-  background_color: "#fffbea",
-  theme_color: "#f5c800",
-  orientation: "portrait",
-  icons: [
-    {
-      src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='40' fill='%23f5c800'/%3E%3Ctext x='96' y='130' font-size='100' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' fill='%23000'%3EP%3C/text%3E%3C/svg%3E",
-      sizes: "192x192",
-      type: "image/svg+xml"
-    },
-    {
-      src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%23f5c800'/%3E%3Ctext x='256' y='350' font-size='280' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' fill='%23000'%3EP%3C/text%3E%3C/svg%3E",
-      sizes: "512x512",
-      type: "image/svg+xml"
-    }
-  ]
-};
-const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
-const url = URL.createObjectURL(blob);
-document.getElementById('pwaManifest').href = url;
-
-// Apple touch icon
-const svgIcon = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='36' fill='%23f5c800'/%3E%3Ctext x='90' y='125' font-size='95' text-anchor='middle' font-family='Arial Black,sans-serif' font-weight='900' fill='%23000'%3EP%3C/text%3E%3C/svg%3E";
-document.getElementById('appleIcon').href = svgIcon;
-</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#f0f2f5;color:#050505;min-height:100vh;}
@@ -248,6 +208,70 @@ body{background:#fffbea!important;}
 .loading-fill{background:var(--brand)!important;}
 .bdg,.freqBdg{background:#ff6b00!important;}
 .paw .avo,.avo{background:rgba(245,200,0,.5)!important;}
+
+/* ===== CHAT / MESSENGER ===== */
+#chatPage{display:none;position:fixed;inset:0;background:#f0f2f5;z-index:150;flex-direction:column;}
+#chatPage.open{display:flex;}
+.chat-layout{display:flex;flex:1;overflow:hidden;max-width:1100px;margin:0 auto;width:100%;padding:8px;gap:8px;}
+/* INBOX LIST */
+.inbox-panel{width:340px;background:#fff;border-radius:12px;display:flex;flex-direction:column;box-shadow:0 1px 4px rgba(0,0,0,.1);flex-shrink:0;}
+.inbox-header{padding:16px;font-size:22px;font-weight:800;border-bottom:1px solid #f0f2f5;display:flex;align-items:center;justify-content:space-between;}
+.inbox-search{padding:8px 16px;border-bottom:1px solid #f0f2f5;}
+.inbox-search input{width:100%;background:#f0f2f5;border:none;border-radius:20px;padding:8px 14px;font-size:14px;outline:none;font-family:inherit;}
+.inbox-list{flex:1;overflow-y:auto;}
+.inbox-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;transition:background .15s;position:relative;}
+.inbox-item:hover{background:#f5f5f5;}
+.inbox-item.active{background:#fff3b0;}
+.inbox-item .ib-av{width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;position:relative;}
+.inbox-item .ib-info{flex:1;min-width:0;}
+.inbox-item .ib-name{font-size:15px;font-weight:600;margin-bottom:2px;}
+.inbox-item .ib-preview{font-size:13px;color:#65676b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.inbox-item .ib-preview.unread{color:#050505;font-weight:600;}
+.inbox-item .ib-time{font-size:11px;color:#65676b;flex-shrink:0;}
+.inbox-unread-dot{width:10px;height:10px;background:#f5c800;border-radius:50%;flex-shrink:0;}
+/* CHAT PANEL */
+.chat-panel{flex:1;background:#fff;border-radius:12px;display:flex;flex-direction:column;box-shadow:0 1px 4px rgba(0,0,0,.1);overflow:hidden;}
+.chat-panel-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#65676b;}
+.chat-panel-empty .ep-icon{font-size:64px;margin-bottom:16px;}
+.chat-header{padding:12px 16px;border-bottom:1px solid #f0f2f5;display:flex;align-items:center;gap:10px;}
+.chat-header-av{width:40px;height:40px;border-radius:50%;object-fit:cover;cursor:pointer;}
+.chat-header-name{font-size:16px;font-weight:700;cursor:pointer;}
+.chat-header-status{font-size:13px;color:#31a24c;}
+.chat-header-actions{margin-left:auto;display:flex;gap:8px;}
+.chat-header-btn{width:36px;height:36px;border-radius:50%;background:#f0f2f5;border:none;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+.chat-header-btn:hover{background:#e4e6eb;}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:4px;}
+.msg-group{display:flex;flex-direction:column;gap:2px;margin-bottom:8px;}
+.msg-group.mine{align-items:flex-end;}
+.msg-group.theirs{align-items:flex-start;}
+.msg-bubble{max-width:65%;padding:8px 12px;border-radius:18px;font-size:15px;line-height:1.4;word-break:break-word;}
+.msg-group.mine .msg-bubble{background:#f5c800;color:#000;border-bottom-right-radius:4px;}
+.msg-group.theirs .msg-bubble{background:#f0f2f5;color:#050505;border-bottom-left-radius:4px;}
+.msg-time{font-size:11px;color:#65676b;padding:0 4px;}
+.msg-sender-av{width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;margin-top:auto;}
+.msg-row{display:flex;align-items:flex-end;gap:6px;}
+.msg-group.mine .msg-row{flex-direction:row-reverse;}
+.msg-img{max-width:200px;border-radius:12px;cursor:pointer;display:block;}
+.chat-input-area{padding:12px 16px;border-top:1px solid #f0f2f5;display:flex;align-items:center;gap:8px;}
+.chat-input{flex:1;background:#f0f2f5;border:none;border-radius:20px;padding:10px 16px;font-size:15px;outline:none;font-family:inherit;resize:none;max-height:100px;}
+.chat-send-btn{width:36px;height:36px;border-radius:50%;background:#f5c800;border:none;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.chat-send-btn:hover{background:#e0b400;}
+.chat-attach-btn{width:36px;height:36px;border-radius:50%;background:transparent;border:none;cursor:pointer;font-size:20px;color:#65676b;}
+.chat-attach-btn:hover{background:#f0f2f5;}
+/* NEW CHAT MODAL */
+.new-chat-modal{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:none;align-items:center;justify-content:center;}
+.new-chat-modal.open{display:flex;}
+.new-chat-box{background:#fff;border-radius:12px;width:400px;max-width:95vw;box-shadow:0 4px 24px rgba(0,0,0,.2);}
+.new-chat-header{padding:12px 16px;border-bottom:1px solid #e4e6eb;display:flex;align-items:center;justify-content:space-between;}
+.new-chat-search{padding:12px 16px;border-bottom:1px solid #e4e6eb;}
+.new-chat-search input{width:100%;background:#f0f2f5;border:none;border-radius:20px;padding:8px 14px;font-size:14px;outline:none;font-family:inherit;}
+.new-chat-results{max-height:300px;overflow-y:auto;}
+.new-chat-user{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;}
+.new-chat-user:hover{background:#f5f5f5;}
+/* MSG BADGE */
+.msg-badge{position:absolute;top:-2px;right:-2px;background:#e41e3f;color:#fff;border-radius:20px;font-size:11px;font-weight:700;padding:1px 5px;min-width:16px;text-align:center;pointer-events:none;display:none;}
+@media(max-width:700px){.inbox-panel{display:none;}.inbox-panel.show{display:flex;width:100%;}.chat-panel{display:none;}.chat-panel.show{display:flex;}}
+
 </style>
 </head>
 <body>
@@ -344,7 +368,7 @@ body{background:#fffbea!important;}
       <button class="ntab" onclick="showFeed();setTab(this)">🛍️</button>
     </div>
     <div class="nav-icons">
-      <div class="bw"><button class="nib">💬</button><span class="bdg">3</span></div>
+      <div class="bw" style="position:relative;"><button class="nib" onclick="openChat()" title="ข้อความ">💬</button><span class="bdg" id="msgBdg" style="display:none;">0</span></div>
       <div class="bw"><button class="nib" id="notifBtn" onclick="showFreq()">🔔</button><span class="bdg" id="notifBdg"></span></div>
       <div class="paw" onclick="togglePM()">
         <img class="av" id="navAv" src="" style="background:#f5c800;" alt=""/>
@@ -474,6 +498,69 @@ body{background:#fffbea!important;}
 
 </div>
 
+<!-- CHAT PAGE -->
+<div id="chatPage">
+  <div class="nav" style="position:relative;z-index:1;">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="nav-logo" onclick="closeChat()">PingPing</div>
+    </div>
+    <div style="font-size:18px;font-weight:700;">ข้อความ</div>
+    <div class="nav-icons">
+      <button class="nib" onclick="closeChat()">🏠</button>
+    </div>
+  </div>
+  <div class="chat-layout">
+    <!-- INBOX LIST -->
+    <div class="inbox-panel" id="inboxPanel">
+      <div class="inbox-header">
+        ข้อความ
+        <button onclick="openNewChat()" style="background:#f0f2f5;border:none;border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:20px;">✏️</button>
+      </div>
+      <div class="inbox-search">
+        <input placeholder="ค้นหาใน Messenger..." id="inboxSearch" oninput="searchInbox(this.value)"/>
+      </div>
+      <div class="inbox-list" id="inboxList">
+        <div style="padding:24px;text-align:center;color:#65676b;">⏳ กำลังโหลด...</div>
+      </div>
+    </div>
+    <!-- CHAT PANEL -->
+    <div class="chat-panel" id="chatPanel">
+      <div class="chat-panel-empty" id="chatEmpty">
+        <div class="ep-icon">💬</div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:8px;">ข้อความของคุณ</div>
+        <div style="font-size:14px;color:#65676b;margin-bottom:16px;">ส่งรูปภาพและข้อความส่วนตัวถึงเพื่อน</div>
+        <button onclick="openNewChat()" style="background:#f5c800;border:none;border-radius:8px;padding:10px 20px;font-size:15px;font-weight:700;cursor:pointer;">ส่งข้อความใหม่</button>
+      </div>
+      <div id="chatWindow" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+        <div class="chat-header" id="chatHeader"></div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-area">
+          <button class="chat-attach-btn" onclick="document.getElementById('chatImgInp').click()">📎</button>
+          <input type="file" id="chatImgInp" accept="image/*" onchange="sendChatImg(this)" style="display:none;"/>
+          <textarea class="chat-input" id="chatInput" placeholder="Aa" rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"></textarea>
+          <button class="chat-send-btn" onclick="sendMsg()">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- NEW CHAT MODAL -->
+<div class="new-chat-modal" id="newChatModal">
+  <div class="new-chat-box">
+    <div class="new-chat-header">
+      <div style="font-size:18px;font-weight:700;">ข้อความใหม่</div>
+      <button onclick="closeNewChat()" style="background:#e4e6eb;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px;">✕</button>
+    </div>
+    <div class="new-chat-search">
+      <input placeholder="ค้นหาผู้ใช้..." id="newChatSearch" oninput="searchNewChat(this.value)" autocomplete="off"/>
+    </div>
+    <div class="new-chat-results" id="newChatResults">
+      <div style="padding:16px;text-align:center;color:#65676b;">พิมพ์ชื่อเพื่อค้นหา</div>
+    </div>
+  </div>
+</div>
+
 <!-- POST MODAL -->
 <div class="mo" id="modOv">
   <div class="modal">
@@ -538,8 +625,8 @@ function setAvs(name,uid,photo){const i=ini(name),c=col(uid);['navAv','pmAv','si
 // VIEWS
 function hide(...ids){ids.forEach(id=>{ const el=document.getElementById(id); if(el)el.style.display='none'; });}
 function show(id,disp='block'){const el=document.getElementById(id);if(el)el.style.display=disp;}
-window.showFeed=function(){hide('profilePage','freqPage');show('feedView');history.pushState({page:'feed'},'','#feed');}
-window.showFreq=function(){hide('feedView','profilePage');show('freqPage');loadFreqPage();history.pushState({page:'freq'},'','#friends');}
+window.showFeed=function(){hide('profilePage','freqPage');show('feedView');history.pushState({page:'feed'},'','#feed');sessionStorage.setItem('pp_page','feed');sessionStorage.removeItem('pp_uid');}
+window.showFreq=function(){hide('feedView','profilePage');show('freqPage');loadFreqPage();history.pushState({page:'freq'},'','#friends');sessionStorage.setItem('pp_page','freq');sessionStorage.removeItem('pp_uid');}
 window.setTab=function(t){document.querySelectorAll('.ntab').forEach(x=>x.classList.remove('active'));t.classList.add('active');}
 
 // PROFILE PAGE
@@ -549,6 +636,8 @@ window.goProfile=async function(uid){
   show('profilePage');
   document.getElementById('pmenu').classList.remove('open');
   history.pushState({page:'profile',uid:uid},'','#profile/'+uid);
+  sessionStorage.setItem('pp_page','profile');
+  sessionStorage.setItem('pp_uid',uid);
   curProfUid=uid;
   window.curProfUid=uid;
   window.isOwn=uid===window.CU?.uid;
@@ -604,15 +693,19 @@ async function renderProActs(uid){
   if(st!=='friends'&&st!=='sent'){try{const r=await getDoc(doc(db,'friendRequests',`${uid}_${window.CU.uid}`));if(r.exists())st='recv';}catch(e){}}
 
   if(st==='friends'){
-    el.innerHTML=`<button class="probtn probtn-s">✅ เพื่อนกันแล้ว</button>
+    el.innerHTML=`<button class="probtn probtn-p" onclick="openChatWith('${uid}')">💬 ส่งข้อความ</button>
+    <button class="probtn probtn-s">✅ เพื่อนกันแล้ว</button>
     <button class="probtn probtn-r" onclick="doUnfriend('${uid}')">❌ เลิกเป็นเพื่อน</button>`;
   }else if(st==='sent'){
-    el.innerHTML=`<button class="probtn probtn-s" onclick="cancelReq('${uid}')">⏳ ยกเลิกคำขอ</button>`;
+    el.innerHTML=`<button class="probtn probtn-p" onclick="openChatWith('${uid}')">💬 ส่งข้อความ</button>
+    <button class="probtn probtn-s" onclick="cancelReq('${uid}')">⏳ ยกเลิกคำขอ</button>`;
   }else if(st==='recv'){
-    el.innerHTML=`<button class="probtn probtn-g" onclick="acceptFri('${uid}')">✅ ยืนยันเป็นเพื่อน</button>
+    el.innerHTML=`<button class="probtn probtn-p" onclick="openChatWith('${uid}')">💬 ส่งข้อความ</button>
+    <button class="probtn probtn-g" onclick="acceptFri('${uid}')">✅ ยืนยันเป็นเพื่อน</button>
     <button class="probtn probtn-s" onclick="declineFri('${uid}')">❌ ปฏิเสธ</button>`;
   }else{
-    el.innerHTML=`<button class="probtn probtn-p" onclick="sendReq('${uid}')">➕ เพิ่มเพื่อน</button>`;
+    el.innerHTML=`<button class="probtn probtn-p" onclick="openChatWith('${uid}')">💬 ส่งข้อความ</button>
+    <button class="probtn probtn-p" onclick="sendReq('${uid}')">➕ เพิ่มเพื่อน</button>`;
   }
 }
 
@@ -689,7 +782,7 @@ window.acceptFri=async function(fromUid){
     await setDoc(doc(db,'users',fromUid,'friends',window.CU.uid),{name:CUD.name,photoURL:CUD.photoURL||'',since:serverTimestamp()});
     await deleteDoc(doc(db,'friendRequests',`${fromUid}_${window.CU.uid}`));
     toast('✅ เพิ่มเพื่อนแล้ว!');
-    loadSideFreq();loadFriendList();updBadge();loadFreqPage();
+    loadSideFreq();loadFriendList();updBadge();updateMsgBadge();loadFreqPage();
     if(curProfUid===fromUid)renderProActs(fromUid);
   }catch(e){toast('เกิดข้อผิดพลาด');}
 };
@@ -744,7 +837,7 @@ async function loadFriendList(){
   try{
     const fs=await getDocs(collection(db,'users',window.CU.uid,'friends'));
     if(fs.empty){el.innerHTML='<div style="font-size:14px;color:#65676b;">ยังไม่มีเพื่อน</div>';return;}
-    el.innerHTML=fs.docs.map(fd=>{const d=fd.data();return`<div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:8px;cursor:pointer;" onclick="goProfile('${fd.id}')" onmouseover="this.style.background='#e4e6eb'" onmouseout="this.style.background=''">${mkAv(d.name||'?',fd.id,d.photoURL||'',36)}<span style="font-size:15px;font-weight:500;">${d.name||'ผู้ใช้'}</span></div>`;}).join('');
+    el.innerHTML=fs.docs.map(fd=>{const d=fd.data();return`<div style="display:flex;align-items:center;gap:10px;padding:6px 8px;border-radius:8px;" onmouseover="this.style.background='#e4e6eb'" onmouseout="this.style.background=''"><div onclick="goProfile('${fd.id}')" style="flex:1;display:flex;align-items:center;gap:10px;cursor:pointer;">${mkAv(d.name||'?',fd.id,d.photoURL||'',36)}<span style="font-size:15px;font-weight:500;">${d.name||'ผู้ใช้'}</span></div><button onclick="openChatWith('${fd.id}')" style="background:transparent;border:none;cursor:pointer;font-size:18px;padding:4px 6px;border-radius:50%;" title="ส่งข้อความ" onmouseover="this.style.background='#d8dadf'" onmouseout="this.style.background='transparent'">💬</button></div>`;}).join('');
   }catch(e){}
 }
 
@@ -810,7 +903,18 @@ onAuthStateChanged(auth,async user=>{
   const pba=document.getElementById('proBoxAv');
   if(pba){if(ud.photoURL){pba.src=ud.photoURL;pba.style.background='transparent';}else{pba.src='';pba.style.background=col(user.uid);pba.textContent=ini(ud.name);}}
     hide('authScreen');show('appScreen');
-    showFeed();loadPosts();loadSideFreq();loadFriendList();updBadge();
+    loadSideFreq();loadFriendList();updBadge();
+    loadPosts();
+    // Restore page from sessionStorage after refresh
+    const savedPage=sessionStorage.getItem('pp_page');
+    const savedUid=sessionStorage.getItem('pp_uid');
+    if(savedPage==='profile'&&savedUid){
+      goProfile(savedUid);
+    }else if(savedPage==='freq'){
+      showFreq();
+    }else{
+      showFeed();
+    }
   }else{hide('appScreen');show('authScreen','flex');}
 });
 
@@ -827,6 +931,7 @@ function renderPost(p){
     <div style="position:relative;"><button class="pmb" onclick="togDD('${p.id}')">···</button>
     <div class="pdd" id="dd-${p.id}">
       <div class="pddi" onclick="goProfile('${uid}');cDD('${p.id}')">👤 ดูโปรไฟล์</div>
+      ${!isOwn?`<div class="pddi" onclick="openChatWith('${uid}');cDD('${p.id}')">💬 ส่งข้อความ</div>`:''}
       <div class="pddi" onclick="cDD('${p.id}')">🔖 บันทึก</div>
       ${isOwn?`<div class="pddi" style="color:#e41e3f;" onclick="delP('${p.id}')">🗑️ ลบโพสต์</div>`:`<div class="pddi" onclick="cDD('${p.id}')">⚠️ รายงาน</div>`}
     </div></div></div>
@@ -835,7 +940,7 @@ function renderPost(p){
     <div class="prb"><div style="display:flex;align-items:center;gap:4px;">👍❤️ <span id="lk-${p.id}">${p.likes||0}</span></div>
     <div style="cursor:pointer;" onclick="togC('${p.id}')"><span id="cc-${p.id}">${p.comments||0}</span> ความคิดเห็น</div></div>
     <div class="pbts">
-      <div class="lw"><div class="lpop" id="lp-${p.id}">${['👍','❤️','😆','😮','😢','😡'].map(e=>`<span class="lem" onclick="doRx('${p.id}','${e}')">${e}</span>`).join('')}</div>
+      <div class="lw"><div class="lpop" id="lp-${p.id}">${['👍','❤️','😆','😮','😢','😡'].map(function(e){return '<span class="lem" onclick="doRx(\''+p.id+'\',\''+e+'\')">'+e+'</span>';}).join('')}</div>
       <button class="pbtn" id="lb-${p.id}" onclick="togLike('${p.id}')" onmouseenter="spop('${p.id}')" onmouseleave="hpop('${p.id}')">👍 <span id="ll-${p.id}">ถูกใจ</span></button></div>
       <button class="pbtn" onclick="togC('${p.id}')">💬 ความคิดเห็น</button>
       <button class="pbtn" onclick="shrP('${p.id}')">↗️ แชร์</button>
@@ -909,7 +1014,12 @@ window.addEventListener('popstate',function(e){
   }else if(state.page==='freq'){
     hide('feedView','profilePage');show('freqPage');loadFreqPage();
   }else if(state.page==='profile'&&state.uid){
-    goProfile(state.uid);
+    // Don't call full goProfile on back - just show profile page
+    hide('feedView','freqPage');show('profilePage');
+    curProfUid=state.uid;
+    window.curProfUid=state.uid;
+    window.isOwn=state.uid===window.CU?.uid;
+    proTab('posts',state.uid);
   }
 });
 
@@ -918,67 +1028,232 @@ document.addEventListener('click',function(e){
   if(!e.target.closest('#navAv')&&!e.target.closest('#pmenu')&&!e.target.closest('.paw'))document.getElementById('pmenu').classList.remove('open');
   if(!e.target.closest('#srchInp')&&!e.target.closest('#searchDrop'))document.getElementById('searchDrop').style.display='none';
 });
-</script>
-<script>
-// Register Service Worker for PWA
-if('serviceWorker' in navigator){
-  window.addEventListener('load', async()=>{
-    try{
-      // Create SW inline
-      const swCode = `
-        const CACHE='pingping-v1';
-        const ASSETS=['./','/index.html'];
-        self.addEventListener('install',e=>{
-          e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).catch(()=>{}));
-          self.skipWaiting();
-        });
-        self.addEventListener('activate',e=>{
-          e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));
-          self.clients.claim();
-        });
-        self.addEventListener('fetch',e=>{
-          if(e.request.method!=='GET')return;
-          e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));
-        });
-      `;
-      const blob = new Blob([swCode],{type:'application/javascript'});
-      const swUrl = URL.createObjectURL(blob);
-      const reg = await navigator.serviceWorker.register(swUrl,{scope:'./'});
-      console.log('PWA: Service Worker registered');
-    }catch(e){console.log('SW registration failed:',e);}
-  });
+
+// ===== CHAT / MESSENGER =====
+let currentChatUid = null;
+let currentChatName = '';
+let currentChatPhoto = '';
+let unsubChat = null;
+let unsubInbox = null;
+
+// Generate chat room ID (same for both users)
+function chatRoomId(uid1, uid2){
+  return [uid1, uid2].sort().join('_');
 }
 
-// Show install prompt on Android
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt',(e)=>{
-  e.preventDefault();
-  deferredPrompt=e;
-  // Show install button after 3 seconds
-  setTimeout(()=>{
-    if(deferredPrompt&&!window.matchMedia('(display-mode: standalone)').matches){
-      showInstallBanner();
-    }
-  },3000);
-});
-
-function showInstallBanner(){
-  const existing=document.getElementById('installBanner');
-  if(existing)return;
-  const banner=document.createElement('div');
-  banner.id='installBanner';
-  banner.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#f5c800;color:#000;padding:12px 20px;border-radius:30px;font-size:15px;font-weight:700;z-index:9999;display:flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.2);cursor:pointer;white-space:nowrap;';
-  banner.innerHTML='📱 ติดตั้ง PingPing <button onclick="installApp()" style="background:#000;color:#f5c800;border:none;border-radius:20px;padding:6px 14px;font-size:14px;font-weight:700;cursor:pointer;">ติดตั้ง</button><button onclick="document.getElementById('installBanner').remove()" style="background:transparent;border:none;font-size:18px;cursor:pointer;margin-left:4px;">✕</button>';
-  document.body.appendChild(banner);
-}
-
-window.installApp=async function(){
-  if(!deferredPrompt)return;
-  deferredPrompt.prompt();
-  const result=await deferredPrompt.userChoice;
-  deferredPrompt=null;
-  document.getElementById('installBanner')?.remove();
+// Open chat page
+window.openChat = function(){
+  document.getElementById('chatPage').classList.add('open');
+  sessionStorage.setItem('pp_page','chat');
+  loadInbox();
 };
+
+window.closeChat = function(){
+  document.getElementById('chatPage').classList.remove('open');
+  if(unsubChat){unsubChat();unsubChat=null;}
+  sessionStorage.setItem('pp_page','feed');
+  showFeed();
+};
+
+// Open chat with specific user
+window.openChatWith = async function(uid){
+  openChat();
+  // Load user info
+  let name='ผู้ใช้',photo='';
+  try{const s=await getDoc(doc(db,'users',uid));if(s.exists()){name=s.data().name||name;photo=s.data().photoURL||'';}}catch(e){}
+  openChatWindow(uid,name,photo);
+};
+
+// Load inbox
+async function loadInbox(){
+  const el=document.getElementById('inboxList');
+  el.innerHTML='<div style="padding:24px;text-align:center;color:#65676b;">⏳ กำลังโหลด...</div>';
+  try{
+    const q=query(collection(db,'chatRooms'),where('members','array-contains',window.CU.uid),orderBy('lastTime','desc'));
+    if(unsubInbox)unsubInbox();
+    unsubInbox=onSnapshot(q,async snap=>{
+      if(snap.empty){el.innerHTML='<div style="padding:24px;text-align:center;color:#65676b;">ยังไม่มีข้อความ<br>กด ✏️ เพื่อเริ่มสนทนา</div>';return;}
+      el.innerHTML='';
+      for(const d of snap.docs){
+        const r=d.data();
+        const otherUid=r.members.find(m=>m!==window.CU.uid);
+        let oName='ผู้ใช้',oPhoto='';
+        try{const s=await getDoc(doc(db,'users',otherUid));if(s.exists()){oName=s.data().name||oName;oPhoto=s.data().photoURL||'';}}catch(e){}
+        const unread=r.lastSender&&r.lastSender!==window.CU.uid&&!r['read_'+window.CU.uid];
+        const timeStr=r.lastTime?ago(r.lastTime):'';
+        const avHtml=oPhoto?`<img src="${oPhoto}" class="ib-av" alt="" onerror="this.style.display='none'"/>`:`<div class="ib-av" style="background:${col(otherUid)};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#fff;">${ini(oName)}</div>`;
+        const item=document.createElement('div');
+        item.className='inbox-item'+(currentChatUid===otherUid?' active':'');
+        item.onclick=()=>openChatWindow(otherUid,oName,oPhoto);
+        item.innerHTML=`${avHtml}<div class="ib-info"><div class="ib-name">${oName}</div><div class="ib-preview${unread?' unread':''}">${r.lastMsg||''}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="ib-time">${timeStr}</div>${unread?'<div class="inbox-unread-dot"></div>':''}</div>`;
+        el.appendChild(item);
+      }
+    });
+  }catch(e){el.innerHTML='<div style="padding:16px;text-align:center;color:#65676b;">โหลดไม่สำเร็จ</div>';}
+}
+
+// Open chat window
+window.openChatWindow = async function(uid, name, photo){
+  currentChatUid=uid; currentChatName=name; currentChatPhoto=photo;
+  // Show chat window
+  document.getElementById('chatEmpty').style.display='none';
+  const cw=document.getElementById('chatWindow');cw.style.display='flex';
+  // Header
+  const avH=photo?`<img src="${photo}" class="chat-header-av" onclick="goProfile('${uid}')" alt="" onerror="this.style.display='none'"/>`:`<div class="chat-header-av" style="background:${col(uid)};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff;cursor:pointer;" onclick="goProfile('${uid}')">${ini(name)}</div>`;
+  document.getElementById('chatHeader').innerHTML=`${avH}<div><div class="chat-header-name" onclick="goProfile('${uid}')">${name}</div><div class="chat-header-status">ออนไลน์</div></div><div class="chat-header-actions"><button class="chat-header-btn" onclick="goProfile('${uid}')">👤</button></div>`;
+  // Mark active in inbox
+  document.querySelectorAll('.inbox-item').forEach(i=>i.classList.remove('active'));
+  // Load messages
+  const roomId=chatRoomId(window.CU.uid,uid);
+  const msgsEl=document.getElementById('chatMessages');
+  msgsEl.innerHTML='<div style="text-align:center;padding:16px;color:#65676b;">⏳</div>';
+  if(unsubChat)unsubChat();
+  const mq=query(collection(db,'chatRooms',roomId,'messages'),orderBy('createdAt','asc'),limit(100));
+  unsubChat=onSnapshot(mq,snap=>{
+    msgsEl.innerHTML='';
+    let lastSender='';
+    snap.docs.forEach(d=>{
+      const m=d.data();
+      const isMe=m.senderUid===window.CU.uid;
+      const sameAsPrev=m.senderUid===lastSender;
+      const avHtml=!isMe&&!sameAsPrev?(photo?`<img src="${photo}" class="msg-sender-av" alt="" onerror="this.style.display='none'"/>`:`<div class="msg-sender-av" style="background:${col(uid)};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;color:#fff;">${ini(name)}</div>`):'<div style="width:28px;flex-shrink:0;"></div>';
+      const bubble=m.imageUrl?`<img src="${m.imageUrl}" class="msg-img" onclick="openLB('${m.imageUrl}')" alt=""/>`:`<div class="msg-bubble">${m.text}</div>`;
+      const div=document.createElement('div');
+      div.className='msg-row';
+      div.innerHTML=isMe?`${bubble}`:`${avHtml}${bubble}`;
+      const wrap=document.createElement('div');
+      wrap.className=`msg-group ${isMe?'mine':'theirs'}`;
+      wrap.appendChild(div);
+      msgsEl.appendChild(wrap);
+      lastSender=m.senderUid;
+    });
+    msgsEl.scrollTop=msgsEl.scrollHeight;
+  });
+  // Mark as read
+  const roomRef=doc(db,'chatRooms',roomId);
+  try{await updateDoc(roomRef,{['read_'+window.CU.uid]:true});}catch(e){}
+  document.getElementById('chatInput').focus();
+  // Auto resize
+  const ci=document.getElementById('chatInput');
+  ci.oninput=function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';};
+};
+
+// Send text message
+window.sendMsg = async function(){
+  const inp=document.getElementById('chatInput');
+  const txt=inp.value.trim();
+  if(!txt||!currentChatUid)return;
+  inp.value='';inp.style.height='auto';
+  const roomId=chatRoomId(window.CU.uid,currentChatUid);
+  const roomRef=doc(db,'chatRooms',roomId);
+  const myName=window.CUD?.name||'ผู้ใช้';
+  try{
+    // Create room if not exists
+    await setDoc(roomRef,{
+      members:[window.CU.uid,currentChatUid],
+      lastMsg:txt, lastSender:window.CU.uid, lastTime:serverTimestamp(),
+      ['read_'+window.CU.uid]:true, ['read_'+currentChatUid]:false
+    },{merge:true});
+    // Add message
+    await addDoc(collection(db,'chatRooms',roomId,'messages'),{
+      text:txt, imageUrl:'', senderUid:window.CU.uid, senderName:myName,
+      createdAt:serverTimestamp()
+    });
+  }catch(e){toast('ส่งไม่สำเร็จ: '+e.message);}
+};
+
+// Send image in chat
+window.sendChatImg = async function(inp){
+  const file=inp.files[0]; if(!file||!currentChatUid)return;
+  toast('⏳ กำลังอัปโหลดรูป...');
+  try{
+    const url=await upCloud(file);
+    const roomId=chatRoomId(window.CU.uid,currentChatUid);
+    const roomRef=doc(db,'chatRooms',roomId);
+    const myName=window.CUD?.name||'ผู้ใช้';
+    await setDoc(roomRef,{
+      members:[window.CU.uid,currentChatUid],
+      lastMsg:'📷 รูปภาพ', lastSender:window.CU.uid, lastTime:serverTimestamp(),
+      ['read_'+window.CU.uid]:true, ['read_'+currentChatUid]:false
+    },{merge:true});
+    await addDoc(collection(db,'chatRooms',roomId,'messages'),{
+      text:'', imageUrl:url, senderUid:window.CU.uid, senderName:myName,
+      createdAt:serverTimestamp()
+    });
+    toast('✅ ส่งรูปแล้ว');
+  }catch(e){toast('ส่งรูปไม่สำเร็จ');}
+  inp.value='';
+};
+
+// New chat modal
+window.openNewChat = async function(){
+  document.getElementById('newChatModal').classList.add('open');
+  document.getElementById('newChatSearch').value='';
+  document.getElementById('newChatResults').innerHTML='<div style="padding:16px;text-align:center;color:#65676b;">พิมพ์ชื่อเพื่อค้นหา</div>';
+  setTimeout(()=>document.getElementById('newChatSearch').focus(),100);
+};
+window.closeNewChat = function(){document.getElementById('newChatModal').classList.remove('open');};
+
+let ncTimer=null;
+window.searchNewChat = async function(v){
+  const el=document.getElementById('newChatResults');
+  if(!v.trim()){el.innerHTML='<div style="padding:16px;text-align:center;color:#65676b;">พิมพ์ชื่อเพื่อค้นหา</div>';return;}
+  clearTimeout(ncTimer);
+  ncTimer=setTimeout(async()=>{
+    try{
+      const snap=await getDocs(collection(db,'users'));
+      const m=snap.docs.filter(d=>(d.data().name||'').toLowerCase().includes(v.toLowerCase())&&d.id!==window.CU?.uid);
+      if(!m.length){el.innerHTML='<div style="padding:16px;text-align:center;color:#65676b;">ไม่พบผู้ใช้</div>';return;}
+      // Build results safely without template literal conflicts
+      const items=m.slice(0,8).map(d=>{
+        const u=d.data();
+        const uid2=d.id;
+        const name2=u.name||'ผู้ใช้';
+        const photo2=u.photoURL||'';
+        const email2=u.email||'';
+        const div=document.createElement('div');
+        div.className='new-chat-user';
+        div.onclick=()=>startNewChat(uid2,name2,photo2);
+        if(photo2){
+          div.innerHTML=`<img src="${photo2}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;" alt=""/><div><div style="font-size:15px;font-weight:600;">${name2}</div><div style="font-size:13px;color:#65676b;">${email2}</div></div>`;
+        }else{
+          div.innerHTML=`<div style="width:44px;height:44px;border-radius:50%;background:${col(uid2)};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#fff;">${ini(name2)}</div><div><div style="font-size:15px;font-weight:600;">${name2}</div><div style="font-size:13px;color:#65676b;">${email2}</div></div>`;
+        }
+        return div;
+      });
+      el.innerHTML='';
+      items.forEach(item=>el.appendChild(item));
+    }catch(e){}
+  },300);
+};
+
+window.startNewChat = function(uid,name,photo){
+  closeNewChat();
+  openChatWindow(uid,name||'ผู้ใช้',photo||'');
+};
+
+window.searchInbox = function(v){
+  document.querySelectorAll('.inbox-item').forEach(item=>{
+    const n=item.querySelector('.ib-name')?.textContent||'';
+    item.style.display=n.toLowerCase().includes(v.toLowerCase())?'flex':'none';
+  });
+};
+
+// Update msg badge
+async function updateMsgBadge(){
+  try{
+    const q=query(collection(db,'chatRooms'),where('members','array-contains',window.CU.uid));
+    const snap=await getDocs(q);
+    let unread=0;
+    snap.docs.forEach(d=>{
+      const r=d.data();
+      if(r.lastSender&&r.lastSender!==window.CU.uid&&!r['read_'+window.CU.uid])unread++;
+    });
+    const b=document.getElementById('msgBdg');
+    if(b){if(unread>0){b.textContent=unread;b.style.display='block';}else b.style.display='none';}
+  }catch(e){}
+}
+
 </script>
 </body>
 </html>
