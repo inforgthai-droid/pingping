@@ -1043,40 +1043,52 @@ function chatRoomId(uid1, uid2){
 
 // Open chat page
 window.openChat = function(){
-  document.getElementById('chatPage').classList.add('open');
+  const cp=document.getElementById('chatPage');
+  cp.style.display='flex';
+  cp.classList.add('open');
   sessionStorage.setItem('pp_page','chat');
   loadInbox();
 };
 
 window.closeChat = function(){
-  document.getElementById('chatPage').classList.remove('open');
+  const cp=document.getElementById('chatPage');
+  cp.style.display='none';
+  cp.classList.remove('open');
   if(unsubChat){unsubChat();unsubChat=null;}
+  if(unsubInbox){unsubInbox();unsubInbox=null;}
   sessionStorage.setItem('pp_page','feed');
   showFeed();
 };
 
 // Open chat with specific user
 window.openChatWith = async function(uid){
-  openChat();
-  // Load user info
+  if(!uid||!window.CU)return;
+  window.openChat();
   let name='ผู้ใช้',photo='';
   try{const s=await getDoc(doc(db,'users',uid));if(s.exists()){name=s.data().name||name;photo=s.data().photoURL||'';}}catch(e){}
-  openChatWindow(uid,name,photo);
+  window.openChatWindow(uid,name,photo);
 };
 
-// Load inbox
+// Load inbox (no orderBy to avoid composite index requirement — sorted client-side)
 async function loadInbox(){
   const el=document.getElementById('inboxList');
   el.innerHTML='<div style="padding:24px;text-align:center;color:#65676b;">⏳ กำลังโหลด...</div>';
   try{
-    const q=query(collection(db,'chatRooms'),where('members','array-contains',window.CU.uid),orderBy('lastTime','desc'));
+    const q=query(collection(db,'chatRooms'),where('members','array-contains',window.CU.uid));
     if(unsubInbox)unsubInbox();
     unsubInbox=onSnapshot(q,async snap=>{
       if(snap.empty){el.innerHTML='<div style="padding:24px;text-align:center;color:#65676b;">ยังไม่มีข้อความ<br>กด ✏️ เพื่อเริ่มสนทนา</div>';return;}
+      // Sort by lastTime descending client-side
+      const docs=[...snap.docs].sort((a,b)=>{
+        const at=a.data().lastTime?.seconds||0;
+        const bt=b.data().lastTime?.seconds||0;
+        return bt-at;
+      });
       el.innerHTML='';
-      for(const d of snap.docs){
+      for(const d of docs){
         const r=d.data();
         const otherUid=r.members.find(m=>m!==window.CU.uid);
+        if(!otherUid)continue;
         let oName='ผู้ใช้',oPhoto='';
         try{const s=await getDoc(doc(db,'users',otherUid));if(s.exists()){oName=s.data().name||oName;oPhoto=s.data().photoURL||'';}}catch(e){}
         const unread=r.lastSender&&r.lastSender!==window.CU.uid&&!r['read_'+window.CU.uid];
@@ -1088,8 +1100,8 @@ async function loadInbox(){
         item.innerHTML=`${avHtml}<div class="ib-info"><div class="ib-name">${oName}</div><div class="ib-preview${unread?' unread':''}">${r.lastMsg||''}</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;"><div class="ib-time">${timeStr}</div>${unread?'<div class="inbox-unread-dot"></div>':''}</div>`;
         el.appendChild(item);
       }
-    });
-  }catch(e){el.innerHTML='<div style="padding:16px;text-align:center;color:#65676b;">โหลดไม่สำเร็จ</div>';}
+    },err=>{el.innerHTML='<div style="padding:16px;text-align:center;color:#65676b;">โหลดไม่สำเร็จ</div>';console.error('inbox error:',err);});
+  }catch(e){el.innerHTML='<div style="padding:16px;text-align:center;color:#65676b;">โหลดไม่สำเร็จ</div>';console.error(e);}
 }
 
 // Open chat window
