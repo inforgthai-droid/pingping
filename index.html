@@ -1069,12 +1069,19 @@ async function loadInbox(){
   const el=document.getElementById('inboxList');
   el.innerHTML='<div style="padding:24px;text-align:center;color:#65676b;">⏳ กำลังโหลด...</div>';
   try{
-    const q=query(collection(db,'chatRooms'),where('members','array-contains',window.CU.uid),orderBy('lastTime','desc'));
+    // No orderBy to avoid composite index requirement - sort client-side
+    const q=query(collection(db,'chatRooms'),where('members','array-contains',window.CU.uid));
     if(unsubInbox)unsubInbox();
     unsubInbox=onSnapshot(q,async snap=>{
       if(snap.empty){el.innerHTML='<div style="padding:24px;text-align:center;color:#65676b;">ยังไม่มีข้อความ<br>กด ✏️ เพื่อเริ่มสนทนา</div>';return;}
       el.innerHTML='';
-      for(const d of snap.docs){
+      // Sort by lastTime descending client-side
+      const sortedDocs=[...snap.docs].sort((a,b)=>{
+        const ta=a.data().lastTime?.toMillis?.()??0;
+        const tb=b.data().lastTime?.toMillis?.()??0;
+        return tb-ta;
+      });
+      for(const d of sortedDocs){
         const r=d.data();
         const otherUid=r.members.find(m=>m!==window.CU.uid);
         let oName='ผู้ใช้',oPhoto='';
