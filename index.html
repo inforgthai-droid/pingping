@@ -943,6 +943,7 @@ function renderPost(p){
       <div class="pddi" onclick="cDD('${p.id}')">🔖 บันทึก</div>
       ${isOwn?`<div class="pddi" style="color:#e41e3f;" onclick="delP('${p.id}')">🗑️ ลบโพสต์</div>`:`<div class="pddi" onclick="cDD('${p.id}')">⚠️ รายงาน</div>`}
     </div></div></div>
+    ${p.isShared?`<div style="display:flex;align-items:center;gap:6px;padding:4px 16px 0;font-size:13px;color:#65676b;">↗️ ${p.authorName} แชร์จาก <span style="font-weight:600;cursor:pointer;" onclick="goProfile('${p.sharedFrom?.uid||''}')">${p.sharedFrom?.name||'ผู้ใช้'}</span></div>`:''}
     ${p.text?`<div class="ptxt${p.text.length<80?' big':''}">${p.text}</div>`:''}
     ${imgH}
     <div class="prb"><div style="display:flex;align-items:center;gap:4px;">👍❤️ <span id="lk-${p.id}">${p.likes||0}</span></div>
@@ -973,7 +974,94 @@ window.doRx=async function(pid,e){document.getElementById('lp-'+pid)?.classList.
 window.togLike=async function(pid){const lb=document.getElementById('lb-'+pid),ll=document.getElementById('ll-'+pid);const lk=lb?.classList.contains('liked');lb?.classList.toggle('liked');if(ll)ll.textContent=lk?'ถูกใจ':'👍 ถูกใจแล้ว';try{await updateDoc(doc(db,'posts',pid),{likes:increment(lk?-1:1)});}catch(e){}};
 window.togC=function(pid){document.getElementById('cs-'+pid)?.classList.toggle('open');document.getElementById('ci-'+pid)?.focus();};
 window.addC=async function(pid){const inp=document.getElementById('ci-'+pid);const txt=inp.value.trim();if(!txt)return;inp.value='';const name=CUD?.name||'ผู้ใช้',uid=window.CU?.uid||'x';const cl=document.getElementById('cl-'+pid);const d=document.createElement('div');d.className='cm';d.innerHTML=`<div style="width:32px;height:32px;border-radius:50%;background:${col(uid)};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;">${ini(name)}</div><div class="cb"><div class="cn">${name}</div><div>${txt}</div></div>`;cl?.appendChild(d);const cc=document.getElementById('cc-'+pid);if(cc)cc.textContent=parseInt(cc.textContent||0)+1;try{await addDoc(collection(db,'posts',pid,'comments'),{authorName:name,authorUid:uid,text:txt,createdAt:serverTimestamp()});await updateDoc(doc(db,'posts',pid),{comments:increment(1)});}catch(e){}};
-window.shrP=function(){navigator.clipboard?.writeText(location.href).then(()=>toast('คัดลอกลิงก์แล้ว ✅')).catch(()=>toast('แชร์แล้ว ✅'));};
+window.shrP=async function(pid){
+  // Show share options modal
+  const existing=document.getElementById('shareModal');
+  if(existing)existing.remove();
+  const modal=document.createElement('div');
+  modal.id='shareModal';
+  modal.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML=`<div style="background:#fff;border-radius:12px;width:360px;max-width:95vw;box-shadow:0 4px 24px rgba(0,0,0,.2);overflow:hidden;">
+    <div style="padding:14px 16px;border-bottom:1px solid #e4e6eb;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:18px;font-weight:700;">แชร์โพสต์</div>
+      <button onclick="document.getElementById('shareModal').remove()" style="background:#e4e6eb;border:none;border-radius:50%;width:32px;height:32px;cursor:pointer;font-size:16px;">✕</button>
+    </div>
+    <div style="padding:8px;">
+      <div onclick="shareToFeed('${pid}')" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:8px;cursor:pointer;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background=''">
+        <div style="width:44px;height:44px;background:#f0f2f5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;">📰</div>
+        <div><div style="font-size:15px;font-weight:600;">แชร์ไปที่ News Feed</div><div style="font-size:13px;color:#65676b;">เพื่อนทุกคนจะเห็นโพสต์นี้</div></div>
+      </div>
+      <div onclick="shareToProfile('${pid}')" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:8px;cursor:pointer;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background=''">
+        <div style="width:44px;height:44px;background:#f0f2f5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;">👤</div>
+        <div><div style="font-size:15px;font-weight:600;">แชร์ไปที่โปรไฟล์ตัวเอง</div><div style="font-size:13px;color:#65676b;">แสดงในหน้าโปรไฟล์ของคุณ</div></div>
+      </div>
+      <div onclick="copyPostLink('${pid}')" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:8px;cursor:pointer;" onmouseover="this.style.background='#f5f5f5'" onmouseout="this.style.background=''">
+        <div style="width:44px;height:44px;background:#f0f2f5;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;">🔗</div>
+        <div><div style="font-size:15px;font-weight:600;">คัดลอกลิงก์</div><div style="font-size:13px;color:#65676b;">คัดลอกลิงก์โพสต์นี้</div></div>
+      </div>
+    </div>
+  </div>`;
+  modal.addEventListener('click',function(e){if(e.target===modal)modal.remove();});
+  document.body.appendChild(modal);
+};
+
+window.shareToFeed=async function(pid){
+  document.getElementById('shareModal')?.remove();
+  try{
+    // Get original post data
+    const snap=await getDoc(doc(db,'posts',pid));
+    if(!snap.exists()){toast('ไม่พบโพสต์นี้');return;}
+    const p=snap.data();
+    const myName=window.CUD?.name||'ผู้ใช้';
+    const myUid=window.CU?.uid||'x';
+    const myPhoto=window.CUD?.photoURL||'';
+    // Create shared post
+    await addDoc(collection(db,'posts'),{
+      text:p.text||'',
+      imageUrl:p.imageUrl||'',
+      authorName:myName,
+      authorUid:myUid,
+      authorPhoto:myPhoto,
+      likes:0,comments:0,
+      isShared:true,
+      sharedFrom:{name:p.authorName||'ผู้ใช้',uid:p.authorUid||'',photo:p.authorPhoto||''},
+      createdAt:serverTimestamp()
+    });
+    toast('✅ แชร์ไปที่ Feed แล้ว!');
+  }catch(e){toast('แชร์ไม่สำเร็จ: '+e.message);}
+};
+
+window.shareToProfile=async function(pid){
+  document.getElementById('shareModal')?.remove();
+  try{
+    const snap=await getDoc(doc(db,'posts',pid));
+    if(!snap.exists()){toast('ไม่พบโพสต์นี้');return;}
+    const p=snap.data();
+    const myName=window.CUD?.name||'ผู้ใช้';
+    const myUid=window.CU?.uid||'x';
+    const myPhoto=window.CUD?.photoURL||'';
+    await addDoc(collection(db,'posts'),{
+      text:p.text||'',
+      imageUrl:p.imageUrl||'',
+      authorName:myName,
+      authorUid:myUid,
+      authorPhoto:myPhoto,
+      likes:0,comments:0,
+      isShared:true,
+      sharedFrom:{name:p.authorName||'ผู้ใช้',uid:p.authorUid||'',photo:p.authorPhoto||''},
+      createdAt:serverTimestamp()
+    });
+    toast('✅ แชร์ไปที่โปรไฟล์แล้ว!');
+    // Go to own profile
+    setTimeout(()=>goProfile(myUid),800);
+  }catch(e){toast('แชร์ไม่สำเร็จ: '+e.message);}
+};
+
+window.copyPostLink=function(pid){
+  document.getElementById('shareModal')?.remove();
+  const url=`https://inforgthai-droid.github.io/pingping/#post/${pid}`;
+  navigator.clipboard?.writeText(url).then(()=>toast('✅ คัดลอกลิงก์แล้ว!')).catch(()=>toast('✅ คัดลอกลิงก์แล้ว!'));
+};
 window.delP=async function(pid){if(!confirm('ลบโพสต์นี้?'))return;cDD(pid);try{await deleteDoc(doc(db,'posts',pid));toast('ลบแล้ว 🗑️');}catch(e){toast('ลบไม่สำเร็จ');}};
 window.togDD=function(pid){document.querySelectorAll('.pdd').forEach(d=>{if(d.id!=='dd-'+pid)d.classList.remove('open');});document.getElementById('dd-'+pid)?.classList.toggle('open');};
 window.cDD=pid=>document.getElementById('dd-'+pid)?.classList.remove('open');
